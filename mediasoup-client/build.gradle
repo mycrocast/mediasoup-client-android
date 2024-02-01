@@ -78,76 +78,29 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }
 
-def getReleaseRepositoryUrl() {
-    return hasProperty('RELEASE_REPOSITORY_URL') ? RELEASE_REPOSITORY_URL
-            : "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-}
-
-def getSnapshotRepositoryUrl() {
-    return hasProperty('SNAPSHOT_REPOSITORY_URL') ? SNAPSHOT_REPOSITORY_URL
-            : "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-}
-
-def getRepositoryUsername() {
-    return hasProperty('NEXUS_USERNAME') ? NEXUS_USERNAME : ""
-}
-
-def getRepositoryPassword() {
-    return hasProperty('NEXUS_PASSWORD') ? NEXUS_PASSWORD : ""
-}
-
 afterEvaluate {
-publishing {
-    publications {
-        aar(MavenPublication) {
-            from components.release
-            pom {
-                name = POM_NAME
-                version = POM_VERSION
-                groupId = POM_GROUP
-                packaging = POM_PACKAGING
-                artifactId = POM_ARTIFACT_ID
-                description = POM_DESCRIPTION
-                url = POM_URL
-
-                scm {
-                    url = POM_SCM_URL
-                    connection = POM_SCM_CONNECTION
-                    developerConnection = POM_SCM_DEV_CONNECTION
+    publishing {
+        publications {
+            aar(MavenPublication) {
+                from components.release
+                pom {
+                    name = "mediasoup-client-android"
+                    version = "1.0.0"
+                    groupId = "de.mycrocast"
+                    artifactId = "mediasoup"
+                    url = "https://mycrocast-maven-repo.s3.eu-central-1.amazonaws.com/android"
                 }
+            }
+        }
 
-                licenses {
-                    license {
-                        name = POM_LICENCE_NAME
-                        url = POM_LICENCE_URL
-                        distribution = POM_LICENCE_DIST
-                    }
-                }
-
-                developers {
-                    developer {
-                        id = POM_DEVELOPER_ID
-                        name = POM_DEVELOPER_NAME
-                        email = POM_DEVELOPER_EMAIL
-                    }
+        repositories {
+            maven {
+                url "s3://mycrocast-maven-repo/android"
+                credentials(AwsCredentials) {
+                    accessKey = providers.gradleProperty("mycrocast_awsAccessKeyId").get()
+                    secretKey = providers.gradleProperty("mycrocast_awsSecretAccessKey").get()
                 }
             }
         }
     }
-    repositories {
-        maven {
-            url = POM_VERSION.endsWith("SNAPSHOT") ? getSnapshotRepositoryUrl() : getReleaseRepositoryUrl()
-            credentials {
-                username = getRepositoryUsername()
-                password = getRepositoryPassword()
-            }
-        }
-    }
-}
-
-signing {
-    sign javaDocReleaseJar
-    sign sourceReleaseJar
-    sign publishing.publications.aar
-}
 }
